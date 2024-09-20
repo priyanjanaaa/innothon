@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill-Based Employee Swapping</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        #notifications {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .notification {
+            background-color: #ffecb3;
+            color: #856404;
+            padding: 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.5s;
+            font-weight: bold;
+            text-align: center;
+        }
+        .employee-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px; /* Adds space between employee cards */
+        }
+        .employee-card {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            width: 220px; /* Uniform width for cards */
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: center;
+        }
+        .employee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        .employee-card h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+        .employee-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .status {
+            font-weight: bold;
+            color: #007BFF;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Employee Dashboard</h1>
+    <div id="notifications"></div>
+    <div class="employee-container" id="employee-dashboard"></div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:9094'); // WebSocket connected to port 9094
+
+        // Sample employees (20 employees)
+        let employees = [
+            { name: 'John Doe', status: 'Present', skills: ['management', 'communication'] },
+            { name: 'Jane Smith', status: 'Present', skills: ['engineering', 'coding'] },
+            { name: 'Sam Wilson', status: 'Present', skills: ['marketing', 'sales'] },
+            { name: 'Emily Davis', status: 'Present', skills: ['finance', 'analysis'] },
+            { name: 'Michael Brown', status: 'Present', skills: ['HR', 'recruitment'] },
+            { name: 'Sarah Johnson', status: 'Present', skills: ['legal', 'compliance'] },
+            { name: 'Chris Lee', status: 'Present', skills: ['IT', 'support'] },
+            { name: 'Anna Miller', status: 'Present', skills: ['design', 'content writing'] },
+            { name: 'David Garcia', status: 'Present', skills: ['operations', 'logistics'] },
+            { name: 'Laura Martinez', status: 'Present', skills: ['customer service', 'sales'] },
+            { name: 'Robert Wilson', status: 'Present', skills: ['R&D', 'innovation'] },
+            { name: 'Lisa Hernandez', status: 'Present', skills: ['advertising', 'marketing'] },
+            { name: 'James Anderson', status: 'Present', skills: ['finance', 'reporting'] },
+            { name: 'Mary White', status: 'Present', skills: ['programming', 'testing'] },
+            { name: 'Paul Thompson', status: 'Present', skills: ['engineering', 'maintenance'] },
+            { name: 'Nancy Lewis', status: 'Present', skills: ['management', 'team building'] },
+            { name: 'Gary Young', status: 'Present', skills: ['analytics', 'data analysis'] },
+            { name: 'Sandra Hall', status: 'Present', skills: ['project management', 'strategic planning'] },
+            { name: 'Kenneth Scott', status: 'Present', skills: ['IT', 'networking'] },
+            { name: 'Betty King', status: 'Present', skills: ['writing', 'editing'] },
+            { name: 'Daniel Wright', status: 'Present', skills: ['research', 'development'] }
+        ];
+
+        // Function to render the employee dashboard
+        function updateEmployeeDashboard() {
+            const dashboard = document.getElementById('employee-dashboard');
+            dashboard.innerHTML = ''; // Clear previous content
+            employees.forEach(emp => {
+                const card = document.createElement('div');
+                card.classList.add('employee-card');
+                card.innerHTML = `
+                    <h3>${emp.name}</h3>
+                    <p>Skills: ${emp.skills.join(', ')}</p>
+                    <p class="status">Status: ${emp.status}</p>
+                `;
+                dashboard.appendChild(card);
+            });
+        }
+
+        // Function to show notifications
+        function showNotification(message) {
+            const notifications = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.innerText = message;
+            notifications.appendChild(notification);
+
+            // Fade out and remove notification after 5 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notifications.removeChild(notification);
+                }, 500);
+            }, 5000);
+        }
+
+        // Function to update employee status
+        function updateEmployeeStatus(name, status) {
+            const employee = employees.find(emp => emp.name === name);
+            if (employee) {
+                employee.status = status;
+                updateEmployeeDashboard();
+            }
+        }
+
+        // WebSocket event listeners
+        ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'worker_swap') {
+                showNotification(data.message);
+                updateEmployeeStatus(data.absentEmployee, 'Absent');
+                updateEmployeeStatus(data.replacementEmployee, 'Working');
+            } else if (data.type === 'worker_swap_fail') {
+                showNotification(data.message);
+                updateEmployeeStatus(data.absentEmployee, 'Absent');
+            }
+        };
+
+        // Initial rendering of the employee dashboard
+        updateEmployeeDashboard();
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
