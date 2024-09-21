@@ -1,13 +1,11 @@
 {
-  "name": "skills",
+  "name": "smart",
   "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "description": "a web application",
+  "main": "ser.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
